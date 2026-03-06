@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - C.L.A. Pro Makeup Artist</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        },
+                        dark: {
+                            900: '#0f172a', // slate-900
+                            800: '#1e293b', // slate-800
+                            700: '#334155', // slate-700
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Custom Scrollbar for table */
+        ::-webkit-scrollbar { height: 8px; width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
+    </style>
+</head>
+<body class="bg-dark-900 text-slate-200 font-sans antialiased min-h-screen relative overflow-x-hidden" style="color-scheme: dark;">
+
+    <!-- ========================================== -->
+    <!-- 1. HALAMAN LOGIN (OVERLAY)                 -->
+    <!-- ========================================== -->
+    <div id="login-overlay" class="fixed inset-0 bg-dark-900 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-dark-800 border border-dark-700 rounded-2xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(0,0,0,0.5)] fade-in">
+            <div class="text-center mb-8">
+                <h1 class="font-serif text-3xl font-bold text-white tracking-wide">
+                    C.L.A. <span class="text-gold-500 italic">Pro Makeup Artist</span>
+                </h1>
+                <p class="text-slate-400 text-sm mt-1">Admin Dashboard Login</p>
+            </div>
+            
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-slate-300 mb-2 font-medium text-sm">Password Akses</label>
+                    <input 
+                        type="password" 
+                        id="password-input"
+                        placeholder="Masukkan password..." 
+                        class="w-full bg-dark-900 border border-dark-700 rounded-lg p-3 text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-colors"
+                        required
+                    />
+                    <p id="login-error" class="text-red-400 text-sm mt-2 hidden">❌ Password salah. Silakan coba lagi.</p>
+                </div>
+                <button 
+                    type="submit" 
+                    class="w-full bg-gold-500 hover:bg-gold-600 text-dark-900 font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center shadow-[0_4px_15px_rgba(245,158,11,0.2)]"
+                >
+                    Masuk Dashboard &rarr;
+                </button>
+            </form>
+            <div class="mt-6 text-center">
+                <a href="index.html" class="text-slate-500 hover:text-slate-300 text-xs transition-colors">&larr; Kembali ke Web Booking</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. DASHBOARD (KONTEN UTAMA)                -->
+    <!-- ========================================== -->
+    <div id="dashboard-container" class="hidden flex-col min-h-screen">
+        
+        <!-- Header -->
+        <header class="bg-dark-800 border-b border-dark-700 sticky top-0 z-40 shadow-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gold-500 rounded-full flex items-center justify-center text-dark-900 font-serif font-bold text-xl">
+                        C
+                    </div>
+                    <div>
+                        <h1 class="font-serif text-xl font-bold text-white">Dashboard C.L.A. Pro Makeup Artist</h1>
+                        <p class="text-xs text-slate-400" id="last-update">Update terakhir: -</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="btn-refresh" class="text-slate-300 hover:text-white bg-dark-700 hover:bg-dark-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Refresh Data
+                    </button>
+                    <button id="btn-manage-prices" class="text-dark-900 bg-slate-200 hover:bg-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm flex items-center gap-1">
+                        💰 Kelola Harga
+                    </button>
+                    <button id="btn-ai-insights" class="text-dark-900 bg-gold-500 hover:bg-gold-600 px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-[0_4px_15px_rgba(245,158,11,0.2)] flex items-center gap-1">
+                        ✨ Insight Bisnis AI
+                    </button>
+                    <button id="btn-logout" class="text-red-400 hover:text-red-300 bg-red-400/10 hover:bg-red-400/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-red-400/20">
+                        Keluar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+            
+            <!-- Statistik Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 fade-in">
+                <!-- Card 1: Total Klien -->
+                <div class="bg-dark-800 border border-dark-700 rounded-xl p-6 shadow-lg relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors"></div>
+                    <p class="text-slate-400 text-sm font-medium mb-1 relative z-10">Total Klien Booking</p>
+                    <h3 class="text-3xl font-bold text-white relative z-10" id="stat-klien">0</h3>
+                </div>
+                
+                <!-- Card 2: Estimasi Pendapatan -->
+                <div class="bg-dark-800 border border-dark-700 rounded-xl p-6 shadow-lg relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-green-500/10 rounded-full group-hover:bg-green-500/20 transition-colors"></div>
+                    <p class="text-slate-400 text-sm font-medium mb-1 relative z-10">Estimasi Pendapatan</p>
+                    <h3 class="text-3xl font-bold text-gold-400 relative z-10" id="stat-pendapatan">Rp 0</h3>
+                </div>
+
+                <!-- Card 3: Layanan Favorit -->
+                <div class="bg-dark-800 border border-dark-700 rounded-xl p-6 shadow-lg relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/10 rounded-full group-hover:bg-purple-500/20 transition-colors"></div>
+                    <p class="text-slate-400 text-sm font-medium mb-1 relative z-10">Layanan Favorit</p>
+                    <h3 class="text-xl font-bold text-white relative z-10 truncate mt-2" id="stat-favorit">-</h3>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="bg-dark-800 border border-dark-700 rounded-xl shadow-lg fade-in flex flex-col overflow-hidden">
+                <!-- Table Header & Search -->
+                <div class="p-4 sm:p-6 border-b border-dark-700 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <h2 class="font-serif text-xl font-semibold text-white">Data Klien Terbaru</h2>
+                    <div class="relative w-full sm:w-72">
+                        <input 
+                            type="text" 
+                            id="search-input"
+                            placeholder="Cari nama atau tanggal..." 
+                            class="w-full bg-dark-900 border border-dark-700 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-gold-500 transition-colors"
+                        >
+                        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-dark-900/50 text-slate-400">
+                            <tr>
+                                <th class="px-6 py-4 font-medium tracking-wider">Waktu Input</th>
+                                <th class="px-6 py-4 font-medium tracking-wider">Nama & Kontak</th>
+                                <th class="px-6 py-4 font-medium tracking-wider">Layanan & Harga</th>
+                                <th class="px-6 py-4 font-medium tracking-wider">Jadwal Makeup</th>
+                                <th class="px-6 py-4 font-medium tracking-wider">Alamat Lokasi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-dark-700">
+                            <!-- Rows will be populated by JS -->
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                                    <div class="flex justify-center items-center gap-2">
+                                        <svg class="animate-spin h-5 w-5 text-gold-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Memuat data klien...
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Empty State (Hidden by default) -->
+                <div id="empty-state" class="hidden p-12 text-center">
+                    <div class="text-4xl mb-3">📭</div>
+                    <h3 class="text-lg font-medium text-white mb-1">Belum ada data</h3>
+                    <p class="text-slate-400 text-sm">Data klien yang melakukan booking akan muncul di sini.</p>
+                </div>
+            </div>
+
+            <!-- Modal AI Insights -->
+            <div id="ai-modal" class="hidden fixed inset-0 bg-dark-900/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div class="bg-dark-800 border border-gold-500/30 rounded-2xl p-6 sm:p-8 max-w-2xl w-full shadow-[0_0_50px_rgba(245,158,11,0.15)] fade-in relative">
+                    <button id="btn-close-ai" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    <div class="flex items-center gap-4 mb-6 border-b border-dark-700 pb-4">
+                        <div class="w-12 h-12 bg-gold-500/20 rounded-full flex items-center justify-center text-2xl">✨</div>
+                        <div>
+                            <h2 class="font-serif text-2xl font-bold text-white">Insight Bisnis AI</h2>
+                            <p class="text-sm text-slate-400">Dianalisis secara real-time oleh Gemini</p>
+                        </div>
+                    </div>
+                    <div id="ai-content" class="text-slate-300 space-y-3 leading-relaxed min-h-[120px] text-sm md:text-base">
+                        <!-- AI Content goes here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Kelola Harga -->
+            <div id="price-modal" class="hidden fixed inset-0 bg-dark-900/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div class="bg-dark-800 border border-slate-600 rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-[0_0_50px_rgba(255,255,255,0.1)] fade-in relative">
+                    <button id="btn-close-price" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    <div class="flex items-center gap-4 mb-6 border-b border-dark-700 pb-4">
+                        <div class="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center text-2xl">💰</div>
+                        <div>
+                            <h2 class="font-serif text-2xl font-bold text-white">Kelola Harga Layanan</h2>
+                            <p class="text-sm text-slate-400">Update harga akan langsung tampil di web booking.</p>
+                        </div>
+                    </div>
+                    
+                    <form id="price-form" class="space-y-4">
+                        <div id="price-inputs-container" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                            <!-- Inputs will be generated by JS -->
+                        </div>
+                        
+                        <div class="pt-4 border-t border-dark-700 flex justify-end gap-3">
+                            <button type="button" id="btn-cancel-price" class="px-4 py-2 rounded-lg text-slate-300 hover:bg-dark-700 transition-colors">Batal</button>
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- LOGIKA JAVASCRIPT                          -->
+    <!-- ========================================== -->
+    <script>
+        // --- KONFIGURASI ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybOUbAaMVR9G17OHhjDCW0C5Frj7ukQ0uodDtmhE3aEeJEfUOXk8G3Zvkzr4YD5Vk/exec"; // Menggunakan URL ASLI Anda
+        const PASSWORD_ADMIN = "mua123";
+        const apiKey = ""; // Disediakan otomatis oleh sistem
+
+        // Global State
+        let allData = [];
+        let renderedData = []; // State untuk tabel saat ini
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        }
+
+        // Ubah format string "Rp 3.500.000" menjadi angka 3500000
+        function parseRupiahToNumber(rupiahString) {
+            if (!rupiahString) return 0;
+            const cleanStr = rupiahString.toString().replace(/Rp|\.|,/g, '').trim();
+            return parseInt(cleanStr) || 0;
+        }
+
+        // Format tanggal & jam
+        function formatDateTime(isoString) {
+            if(!isoString) return "-";
+            const date = new Date(isoString);
+            return date.toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        // --- GEMINI API LOGIC ---
+        async function fetchGemini(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+            
+            // Retry logic
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+                    if (data.candidates && data.candidates.length > 0) {
+                        return data.candidates[0].content.parts[0].text;
+                    }
+                    throw new Error("Format respons AI tidak valid.");
+                } catch (err) {
+                    if (i === 4) throw err;
+                    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+                }
+            }
+        }
+
+        // --- AUTHENTICATION LOGIC ---
+        const loginOverlay = document.getElementById('login-overlay');
+        const dashboardContainer = document.getElementById('dashboard-container');
+        const loginForm = document.getElementById('login-form');
+        const passwordInput = document.getElementById('password-input');
+        const loginError = document.getElementById('login-error');
+        const btnLogout = document.getElementById('btn-logout');
+
+        // Cek sesi (Session Storage agar tidak perlu login terus kalau tidak sengaja ter-refresh)
+        if (sessionStorage.getItem('adminAuth') === 'true') {
+            showDashboard();
+        }
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pwd = passwordInput.value;
+            
+            if (pwd === PASSWORD_ADMIN) {
+                sessionStorage.setItem('adminAuth', 'true');
+                loginError.classList.add('hidden');
+                passwordInput.value = '';
+                showDashboard();
+            } else {
+                loginError.classList.remove('hidden');
+            }
+        });
+
+        btnLogout.addEventListener('click', function() {
+            sessionStorage.removeItem('adminAuth');
+            dashboardContainer.classList.add('hidden');
+            loginOverlay.classList.remove('hidden');
+            loginOverlay.classList.add('flex');
+        });
+
+        function showDashboard() {
+            loginOverlay.classList.add('hidden');
+            loginOverlay.classList.remove('flex');
+            dashboardContainer.classList.remove('hidden');
+            dashboardContainer.classList.add('flex');
+            loadData(); // Load data saat masuk dashboard
+        }
+
+        // --- FETCH & DATA LOGIC ---
+        const btnRefresh = document.getElementById('btn-refresh');
+        const searchInput = document.getElementById('search-input');
+        const tableBody = document.getElementById('table-body');
+        const emptyState = document.getElementById('empty-state');
+        
+        btnRefresh.addEventListener('click', loadData);
+        
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const filteredData = allData.filter(item => {
+                const searchStr = `${item.nama || item.Nama} ${item.tanggal || item.Tanggal} ${item.layanan || item.Layanan}`.toLowerCase();
+                return searchStr.includes(query);
+            });
+            renderTable(filteredData);
+        });
+
+        async function loadData() {
+            // Set Loading UI
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-6 py-12 text-center text-slate-500">
+                        <div class="flex justify-center items-center gap-2">
+                            <svg class="animate-spin h-5 w-5 text-gold-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Mengambil data terbaru...
+                        </div>
+                    </td>
+                </tr>
+            `;
+            emptyState.classList.add('hidden');
+
+            try {
+                let rawData = [];
+                
+                // Gunakan Mock Data jika URL belum diubah
+                if (SCRIPT_URL.includes("GANTI_URL_INI")) {
+                    console.log("Menggunakan Mock Data karena SCRIPT_URL belum diganti.");
+                    // Simulasi delay jaringan
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    rawData = [...MOCK_DATA];
+                } else {
+                    // Fetch real data
+                    // Tambahkan timestamp agar tidak dicache oleh browser/proxy
+                    const response = await fetch(`${SCRIPT_URL}?t=${new Date().getTime()}`);
+                    const result = await response.json();
+                    
+                    // Tergantung struktur respon Google Apps Script Anda,
+                    // kadang return array langsung, kadang di dalam properti .data
+                    rawData = result.data ? result.data : (Array.isArray(result) ? result : []);
+                }
+
+                // Proses dan balikkan data (terbaru di atas)
+                allData = rawData.reverse(); 
+
+                // Update Waktu
+                const now = new Date();
+                document.getElementById('last-update').innerText = `Update terakhir: ${now.toLocaleTimeString('id-ID')}`;
+
+                calculateStats(allData);
+                renderTable(allData);
+
+            } catch (error) {
+                console.error("Gagal mengambil data:", error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-red-400">
+                            Terjadi kesalahan saat mengambil data dari server. <br>
+                            <span class="text-sm text-slate-500">Cek console browser untuk detail error.</span>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // --- RENDER LOGIC ---
+        function calculateStats(data) {
+            // 1. Total Klien
+            const totalKlien = data.length;
+            document.getElementById('stat-klien').innerText = totalKlien;
+
+            // 2. Estimasi Pendapatan
+            let totalPendapatan = 0;
+            const layananCounts = {};
+
+            data.forEach(row => {
+                // Hitung Pendapatan
+                totalPendapatan += parseRupiahToNumber(row.harga || row.Harga);
+                
+                // Hitung Layanan Favorit
+                const layanan = (row.layanan || row.Layanan) || 'Tidak Diketahui';
+                layananCounts[layanan] = (layananCounts[layanan] || 0) + 1;
+            });
+
+            document.getElementById('stat-pendapatan').innerText = formatRupiah(totalPendapatan);
+
+            // 3. Layanan Favorit
+            let favorit = "-";
+            let maxCount = 0;
+            for (const [layanan, count] of Object.entries(layananCounts)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    favorit = layanan;
+                }
+            }
+            document.getElementById('stat-favorit').innerText = favorit;
+        }
+
+        function renderTable(dataToRender) {
+            tableBody.innerHTML = '';
+            renderedData = dataToRender; // Simpan data tabel
+
+            if (dataToRender.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            dataToRender.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-dark-800/50 transition-colors group";
+                
+                // Format nomor WA untuk link
+                let rawWa = row.wa || row.WhatsApp || "";
+                let waNumber = rawWa.toString().replace(/\D/g, '');
+                if (waNumber.startsWith('0')) {
+                    waNumber = '62' + waNumber.substring(1);
+                }
+
+                // Baris Tabel
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="text-xs text-slate-400">${escapeHtml(formatDateTime(row.timestamp || row.Timestamp))}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-white mb-1">${escapeHtml(row.nama || row.Nama)}</div>
+                        <div class="flex gap-2 mt-2">
+                            <a href="https://wa.me/${waNumber}" target="_blank" class="inline-flex items-center gap-1 text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 px-2 py-1 rounded border border-green-500/20 transition-colors">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.347-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.876 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                                WA
+                            </a>
+                            <button onclick="generateAndSendWAAI(${index})" class="inline-flex items-center gap-1 text-xs bg-gold-500/10 text-gold-400 hover:bg-gold-500/20 px-2 py-1 rounded border border-gold-500/20 transition-colors" title="Buat Draf Pesan dengan AI">
+                                ✨ Draf AI
+                            </button>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-white">${escapeHtml(row.layanan || row.Layanan)}</div>
+                        <div class="text-gold-400 font-medium text-xs mt-1">${escapeHtml(row.harga || row.Harga)}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="inline-flex items-center gap-2 bg-dark-700/50 border border-dark-600 px-3 py-1.5 rounded-lg text-white">
+                            <svg class="w-4 h-4 text-gold-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            ${escapeHtml(row.tanggal || row.Tanggal)}
+                            <span class="text-slate-400 ml-1">| ${escapeHtml(row.jam || row.Jam)}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-slate-300 max-w-[200px] sm:max-w-xs truncate" title="${escapeHtml(row.alamat || row.Alamat)}">
+                            ${escapeHtml(row.alamat || row.Alamat)}
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // --- LOGIKA EVENT AI GEMINI ---
+        const btnAiInsights = document.getElementById('btn-ai-insights');
+        const aiModal = document.getElementById('ai-modal');
+        const btnCloseAi = document.getElementById('btn-close-ai');
+        const aiContent = document.getElementById('ai-content');
+
+        // Fitur 1: Analisis Bisnis MUA
+        btnAiInsights.addEventListener('click', async () => {
+            aiModal.classList.remove('hidden');
+            aiContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-6">
+                    <svg class="animate-spin h-8 w-8 text-gold-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-gold-400 font-medium animate-pulse">Gemini sedang menganalisis data pesanan...</p>
+                </div>
+            `;
+
+            try {
+                // Ekstraksi ringkasan untuk menghemat ukuran payload
+                const summaryData = allData.map(d => ({ Layanan: d.layanan || d.Layanan, Harga: d.harga || d.Harga, Tanggal: d.tanggal || d.Tanggal }));
+                
+                const prompt = `Anda adalah penasihat bisnis yang handal untuk pemilik salon Makeup Artist (MUA) mewah. 
+Berikut adalah ringkasan pesanan (booking) klien terbaru: ${JSON.stringify(summaryData)}. 
+Tolong analisis secara singkat dan berikan tepat 3 poin insight bisnis (saran pemasaran, layanan yang potensial, atau teguran jadwal). 
+Format jawaban Anda menggunakan HTML sederhana (<ul><li>...</li></ul>) tanpa styling CSS sebaris. Gunakan bahasa Indonesia yang profesional dan elegan.`;
+
+                let result = await fetchGemini(prompt);
+                
+                // Bersihkan block markdown jika AI menambahkannya
+                result = result.replace(/```html/g, '').replace(/```/g, '');
+                
+                aiContent.innerHTML = `<div class="prose prose-invert prose-gold max-w-none space-y-2">${result}</div>`;
+            } catch (error) {
+                aiContent.innerHTML = `<p class="text-red-400">Gagal memuat analisis AI. Sistem sedang sibuk atau kunci API belum siap.</p>`;
+                console.error("AI Error: ", error);
+            }
+        });
+
+        btnCloseAi.addEventListener('click', () => {
+            aiModal.classList.add('hidden');
+        });
+
+        // Fitur 2: Generate Draf Pesan WA untuk Klien
+        async function generateAndSendWAAI(index) {
+            const clientData = renderedData[index];
+            if (!clientData) return;
+
+            // Beri efek loading pada kursor
+            document.body.style.cursor = 'wait';
+            
+            try {
+                const clientNama = clientData.nama || clientData.Nama;
+                const clientLayanan = clientData.layanan || clientData.Layanan;
+                const clientTanggal = clientData.tanggal || clientData.Tanggal;
+                const clientJam = clientData.jam || clientData.Jam;
+                const clientAlamat = clientData.alamat || clientData.Alamat;
+
+                const prompt = `Anda adalah admin dari "C.L.A. Pro Makeup Artist". 
+Buatkan SATU paragraf draf pesan WhatsApp yang ramah, sopan, dan elegan kepada klien bernama ${clientNama}. 
+Tujuannya: Mengkonfirmasi dan mengingatkan jadwal layanan ${clientLayanan} pada tanggal ${clientTanggal} jam ${clientJam} WIB di lokasi: ${clientAlamat}.
+Sertakan emoji yang relevan. Jangan beri kata pengantar (seperti "Berikut pesannya:"), langsung saja berikan hasil pesannya agar bisa otomatis tersalin.`;
+
+                const aiMessage = await fetchGemini(prompt);
+                
+                let rawWa = clientData.wa || clientData.WhatsApp || "";
+                let waNumber = rawWa.toString().replace(/\D/g, '');
+                if (waNumber.startsWith('0')) {
+                    waNumber = '62' + waNumber.substring(1);
+                }
+
+                // Buka tab WhatsApp dengan format pesan otomatis AI
+                const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(aiMessage.trim())}`;
+                window.open(waUrl, '_blank');
+            } catch (error) {
+                alert("Gagal membuat draf pesan AI. Silakan coba klik WA manual.");
+                console.error("AI WA Error: ", error);
+            } finally {
+                document.body.style.cursor = 'default';
+            }
+        }
+
+        // --- FITUR KELOLA HARGA ---
+        const btnManagePrices = document.getElementById('btn-manage-prices');
+        const priceModal = document.getElementById('price-modal');
+        const btnClosePrice = document.getElementById('btn-close-price');
+        const btnCancelPrice = document.getElementById('btn-cancel-price');
+        const priceForm = document.getElementById('price-form');
+        const priceInputsContainer = document.getElementById('price-inputs-container');
+
+        // Data Layanan Default (Harus sama dengan di App.tsx)
+        const DEFAULT_SERVICES_DATA = [
+            // Reguler
+            { id: 'reg_a_makeup', category: 'Reguler Makeup', title: 'Paket A: Graduation / Party (Makeup Only)', price: 650000 },
+            { id: 'reg_a_full', category: 'Reguler Makeup', title: 'Paket A: Graduation / Party (Makeup + Hairdo)', price: 900000 },
+            { id: 'reg_b_makeup', category: 'Reguler Makeup', title: 'Paket B: Pre-Wedding / Engagement (Makeup Only)', price: 800000 },
+            { id: 'reg_b_full', category: 'Reguler Makeup', title: 'Paket B: Pre-Wedding / Engagement (Makeup + Hairdo)', price: 1100000 },
+            
+            // Wedding
+            { id: 'wed_a_makeup', category: 'Wedding Makeup', title: 'Paket A: Akad / Pemberkatan (Makeup Only)', price: 2500000 },
+            { id: 'wed_a_full', category: 'Wedding Makeup', title: 'Paket A: Akad / Pemberkatan (Makeup + Hairdo/Hijabdo)', price: 3000000 },
+            { id: 'wed_b_makeup', category: 'Wedding Makeup', title: 'Paket B: Akad / Pemberkatan (Makeup + Retouch)', price: 3000000 },
+            { id: 'wed_b_full', category: 'Wedding Makeup', title: 'Paket B: Akad / Pemberkatan (Complete)', price: 4000000 },
+
+            // Add-ons
+            { id: 'add_reg_hijab', category: 'Add-ons', title: 'Hijabdo (Reguler)', price: 100000 },
+            { id: 'add_reg_acc', category: 'Add-ons', title: 'Accessories (Reguler)', price: 50000 },
+            { id: 'add_wed_test', category: 'Add-ons', title: 'Test Makeup', price: 1000000 },
+            { id: 'add_wed_acc', category: 'Add-ons', title: 'Accessories (Wedding)', price: 50000 },
+        ];
+
+        function getStoredPrices() {
+            const stored = localStorage.getItem('CLA_SERVICES_PRICES');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    // Merge dengan default untuk memastikan ID lengkap
+                    return DEFAULT_SERVICES_DATA.map(def => {
+                        const found = parsed.find(p => p.id === def.id);
+                        return found ? { ...def, price: found.price } : def;
+                    });
+                } catch (e) {
+                    console.error("Error parsing prices", e);
+                }
+            }
+            return DEFAULT_SERVICES_DATA;
+        }
+
+        function renderPriceInputs() {
+            const services = getStoredPrices();
+            let currentCategory = '';
+            
+            priceInputsContainer.innerHTML = services.map(svc => {
+                let header = '';
+                if (svc.category && svc.category !== currentCategory) {
+                    currentCategory = svc.category;
+                    header = `<h3 class="text-gold-500 font-bold mt-6 mb-3 text-sm uppercase tracking-wider border-b border-dark-700 pb-1 sticky top-0 bg-dark-800 pt-2 z-10">${currentCategory}</h3>`;
+                }
+                
+                return `
+                ${header}
+                <div class="bg-dark-900/50 p-4 rounded-lg border border-dark-700 mb-3">
+                    <label class="block text-sm font-medium text-slate-300 mb-1">${svc.title}</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 text-slate-500">Rp</span>
+                        <input 
+                            type="number" 
+                            name="price_${svc.id}" 
+                            value="${svc.price}" 
+                            class="w-full bg-dark-800 border border-dark-600 rounded px-3 py-2 pl-10 text-white focus:ring-1 focus:ring-gold-500 focus:border-gold-500 outline-none transition-all"
+                            required
+                        >
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        btnManagePrices.addEventListener('click', () => {
+            renderPriceInputs();
+            priceModal.classList.remove('hidden');
+            priceModal.classList.add('flex');
+        });
+
+        function closePriceModal() {
+            priceModal.classList.add('hidden');
+            priceModal.classList.remove('flex');
+        }
+
+        [btnClosePrice, btnCancelPrice].forEach(btn => btn.addEventListener('click', closePriceModal));
+
+        priceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(priceForm);
+            const newPrices = DEFAULT_SERVICES_DATA.map(svc => {
+                const newPrice = formData.get(`price_${svc.id}`);
+                return {
+                    id: svc.id,
+                    price: parseInt(newPrice) || svc.price // Fallback ke harga lama jika invalid
+                };
+            });
+
+            localStorage.setItem('CLA_SERVICES_PRICES', JSON.stringify(newPrices));
+            
+            // Tampilkan notifikasi sukses sederhana
+            const btnSubmit = priceForm.querySelector('button[type="submit"]');
+            const originalText = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = `<span class="text-white">✅ Tersimpan!</span>`;
+            btnSubmit.classList.replace('bg-green-600', 'bg-green-500');
+            
+            setTimeout(() => {
+                closePriceModal();
+                btnSubmit.innerHTML = originalText;
+                btnSubmit.classList.replace('bg-green-500', 'bg-green-600');
+                
+                // Refresh data dashboard untuk update estimasi pendapatan jika perlu (opsional)
+                // loadData(); 
+            }, 1000);
+        });
+
+        // --- UTILS ---
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') return unsafe;
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
